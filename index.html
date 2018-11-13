@@ -241,7 +241,7 @@
              * @return {boolean}
              */
             isValidInput: function () {
-                if (this.newCity === '') {
+                if (this.newCity.trim() === '') {
                     alert('Please type a city name.');
                     return false;
                 }
