@@ -246,7 +246,7 @@
                     return false;
                 }
                 if (!/^[a-z|\s]+$/i.test(this.newCity)) {
-                    alert('Please use only letters and spaces.');
+                    alert('Please use only english letters and spaces.');
                     return false;
                 }
                 if (this.cities.filter(function (city) {
@@ -265,7 +265,7 @@
             appendCities: function (data) {
                 this.cities.push({
                     id: data.id,
-                    name: data.name,
+                    name: data.name.toUpperCase(),
                     country: data.sys.country,
                     state: data.weather[0].main,
                     temperature: Math.round(data.main.temp)
