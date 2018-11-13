@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Weather Eb App</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:900&amp;subset=latin-ext" rel="stylesheet">
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+        }
+
+        .app {
+            display: flex;
+            flex-flow: column nowrap;
+            margin: 100px 15vw;
+            color: #222;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .app__section {
+            flex-grow: 1;
+            display: flex;
+            flex-wrap: nowrap;
+            padding: 20px;
+        }
+
+        .app__section--row {
+            flex-direction: row
+        }
+
+        .app__section--column {
+            flex-direction: column
+        }
+
+        .section__input {
+            flex-grow: 4;
+            padding: 10px;
+            border: 2px solid;
+            font-weight: bolder;
+            margin: 10px;
+        }
+
+        .section__button {
+            flex-grow: 1;
+            padding: 10px;
+            margin: 10px;
+            color: #222;
+            background-color: white;
+            font-weight: bolder;
+            border: 2px solid;
+        }
+
+        .section__button:hover {
+            background-color: #EEE;
+        }
+
+        .section__button:active {
+            color: #FFF;
+            background-color: #000;
+        }
+
+        .section__button:disabled {
+            background-color: #ebebe4;
+        }
+
+        .section_search {
+            flex-grow: 1;
+            margin: 10px;
+            align-self: center;
+        }
+
+        .search__input {
+            padding: 5px;
+            border: 2px solid;
+        }
+
+        .section_dashboard {
+            flex-grow: 1;
+            display: flex;
+            flex-flow: row wrap;
+            justify-content: flex-start;
+            align-content: stretch;
+            margin: 10px;
+        }
+
+        .dashboard_city {
+            border: 2px solid;
+            width: calc((70vw - 190px) / 3);
+            margin: 10px;
+            padding: 10px;
+        }
+
+        .dashboard_city:nth-child(3n) {
+            margin-right: 0;
+        }
+
+        .dashboard_city:nth-child(3n + 1) {
+            margin-left: 0;
+        }
+
+        .city__header {
+            font-weight: bolder;
+            font-size: 24px;
+            line-height: 32px;
+        }
+
+        .header_delete {
+            float: right;
+            font-size: 32px;
+            line-height: 32px;
+            text-decoration: none;
+            color: #222222;
+        }
+
+        .header_delete:hover {
+            cursor: pointer;
+        }
+
+        .city__description {
+            margin-top: 40px;
+        }
+
+        .city__heat {
+            font-weight: bolder;
+            font-size: 64px;
+        }
+
+    </style>
+</head>
+<body>
+
+<main id="app" class="app">
+    <div class="app__section app__section--row">
+        <input type="text" class="section__input"
+               v-model="newCity"
+               :disabled="isLoading"
+               ref="newCity"
+               placeholder="Enter city name here.." autofocus>
+        <button class="section__button" @click="addNewCity"
+                :disabled="isLoading">Add
+        </button>
+    </div>
+    <div class="app__section app__section--column">
+        <div class="section_search">
+            <input type="text" class="search__input"
+                   :disabled="isNotSearchable"
+                   v-model="searchKeyword"
+                   placeholder="Search">
+        </div>
+        <div class="section_dashboard">
+            <div class="dashboard_city" v-for="(city, index) in filteredCities" :key="city.id">
+                <div class="city__header">
+                    {{ city.name }}, {{ city.country }}
+                    <a @click.prevent="deleteCity(index)" class="header_delete">&times;</a>
+                </div>
+                <div class="city__description">
+                    {{ city.state }}
+                </div>
+                <div class="city__heat">
+                    {{ city.temperature }}&deg;C
+                </div>
+            </div>
+            <p v-if="thereIsNoResult">No search result.</p>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+    const API_ENDPOINT = 'https://api.openweathermap.org/data/2.5/weather';
+    const API_KEY = '26fd348dfa3b80bb146cdddc0e0610a7';
+
+    var app = new Vue({
+        el: '#app',
+        data: {
+            isLoading: false,
+            newCity: '',
+            searchKeyword: '',
+            cities: []
+        },
+        computed: {
+            /**
+             * Layer on actual cities array for search feature.
+             * Filters by search input keywords and returns only related cities.
+             * @return {Array.<Object>}
+             */
+            filteredCities: function () {
+                return this.cities.filter(function (city) {
+                    return city.name.toLowerCase().includes(
+                        this.searchKeyword.toLowerCase()
+                    )
+                }.bind(this));
+            },
+            /**
+             * Disables search input until searching makes sense.
+             * @return {boolean}
+             */
+            isNotSearchable: function () {
+                return this.cities.length < 2;
+            },
+            /**
+             * Shows no result text if there is no related city in result.
+             * @return {boolean}
+             */
+            thereIsNoResult: function () {
+                return this.searchKeyword.length >= 1 && this.filteredCities.length == 0;
+            }
+        },
+        methods: {
+            /**
+             * Toggles loading lock state.
+             * @return {void}
+             */
+            toggleLoadingState: function () {
+                this.isLoading = !this.isLoading;
+            },
+            /**
+             * Returns back to the previous state.
+             * Clears, toggles and finally focuses back.
+             * @param {boolean} clearInput Whether clear the text of input or not.
+             * @return {void}
+             */
+            returnBackState: function (clearInput) {
+                if (clearInput) this.newCity = '';
+
+                this.toggleLoadingState();
+
+                this.$nextTick(function () {
+                    this.$refs.newCity.focus();
+                }.bind(this));
+            },
+            /**
+             * Determines if the given input valid for requesting.
+             * Allows inputs that not empty, includes only letters/spaces and non existent.
+             * Returns true if all tests passed.
+             * @return {boolean}
+             */
+            isValidInput: function () {
+                if (this.newCity === '') {
+                    alert('Please type a city name.');
+                    return false;
+                }
+                if (!/^[a-z|\s]+$/i.test(this.newCity)) {
+                    alert('Please use only letters and spaces.');
+                    return false;
+                }
+                if (this.cities.filter(function (city) {
+                    return city.name.toLowerCase() === this.newCity.toLowerCase();
+                }.bind(this)).length) {
+                    alert('The city ' + this.newCity + ' already added!');
+                    return false;
+                }
+
+                return true;
+            },
+            /**
+             * Pushes the city grabbed from API to the cities array.
+             * @return {void}
+             */
+            appendCities: function (data) {
+                this.cities.push({
+                    id: data.id,
+                    name: data.name,
+                    country: data.sys.country,
+                    state: data.weather[0].main,
+                    temperature: Math.round(data.main.temp)
+                });
+            },
+            /**
+             * Fetches a new city by a validated city name.
+             * @return {void}
+             */
+            addNewCity: function () {
+
+                if (!this.isValidInput()) return;
+
+                this.toggleLoadingState();
+
+                axios.get(API_ENDPOINT, {
+                    params: {
+                        q: this.newCity,
+                        units: 'metric',
+                        appid: API_KEY
+                    }
+                })
+                    .then(function (response) {
+                        this.appendCities(response.data);
+
+                        this.returnBackState(true);
+                    }.bind(this))
+                    .catch(function (error) {
+                        this.returnBackState(false);
+
+                        if (error.response.data) {
+
+                            alert(error.response.data.message);
+                            return;
+                        }
+                        alert('Sorry, something went wrong!');
+                    }.bind(this));
+            },
+            /**
+             * Deletes a city based on its array index.
+             * @param {number} index Index of the city object.
+             * @return {void}
+             */
+            deleteCity: function (index) {
+                this.$delete(this.cities, index);
+            }
+        }
+    })
+</script>
+</body>
+</html>
