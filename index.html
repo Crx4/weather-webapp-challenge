@@ -236,7 +236,7 @@
             },
             /**
              * Determines if the given input valid for requesting.
-             * Allows inputs that not empty, includes only letters/spaces and non existent.
+             * Allows inputs that not empty, includes only english letters or spaces and non existent.
              * Returns true if all tests passed.
              * @return {boolean}
              */
@@ -246,7 +246,7 @@
                     return false;
                 }
                 if (!/^[a-z|\s]+$/i.test(this.newCity)) {
-                    alert('Please use only english letters and spaces.');
+                    alert('Please use only letters and spaces. No multlingual support yet, only english letters approved.');
                     return false;
                 }
                 if (this.cities.filter(function (city) {
@@ -285,6 +285,7 @@
                     params: {
                         q: this.newCity,
                         units: 'metric',
+                        lang: 'en',
                         appid: API_KEY
                     }
                 })
