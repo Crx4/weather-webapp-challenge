@@ -67,7 +67,7 @@
             background-color: #ebebe4;
         }
 
-        .section_search {
+        .section__search {
             flex-grow: 1;
             margin: 10px;
             align-self: center;
@@ -78,7 +78,7 @@
             border: 2px solid;
         }
 
-        .section_dashboard {
+        .section__dashboard {
             flex-grow: 1;
             display: flex;
             flex-flow: row wrap;
@@ -87,28 +87,28 @@
             margin: 10px;
         }
 
-        .dashboard_city {
+        .dashboard__card {
             border: 2px solid;
             width: calc((70vw - 190px) / 3);
             margin: 10px;
             padding: 10px;
         }
 
-        .dashboard_city:nth-child(3n) {
+        .dashboard__card:nth-child(3n) {
             margin-right: 0;
         }
 
-        .dashboard_city:nth-child(3n + 1) {
+        .dashboard__card:nth-child(3n + 1) {
             margin-left: 0;
         }
 
-        .city__header {
+        .card__header {
             font-weight: bolder;
             font-size: 24px;
             line-height: 32px;
         }
 
-        .header_delete {
+        .header__delete {
             float: right;
             font-size: 32px;
             line-height: 32px;
@@ -116,15 +116,15 @@
             color: #222222;
         }
 
-        .header_delete:hover {
+        .header__delete:hover {
             cursor: pointer;
         }
 
-        .city__description {
+        .card__description {
             margin-top: 40px;
         }
 
-        .city__heat {
+        .card__heat {
             font-weight: bolder;
             font-size: 64px;
         }
@@ -145,22 +145,22 @@
         </button>
     </div>
     <div class="app__section app__section--column">
-        <div class="section_search">
+        <div class="section__search">
             <input type="text" class="search__input"
                    :disabled="isNotSearchable"
                    v-model="searchKeyword"
                    placeholder="Search">
         </div>
-        <div class="section_dashboard">
-            <div class="dashboard_city" v-for="(city, index) in filteredCities" :key="city.id">
-                <div class="city__header">
+        <div class="section__dashboard">
+            <div class="dashboard__card" v-for="(city, index) in filteredCities" :key="city.id">
+                <div class="card__header">
                     {{ city.name }}, {{ city.country }}
-                    <a @click.prevent="deleteCity(index)" class="header_delete">&times;</a>
+                    <a @click.prevent="deleteCity(index)" class="header__delete">&times;</a>
                 </div>
-                <div class="city__description">
+                <div class="card__description">
                     {{ city.state }}
                 </div>
-                <div class="city__heat">
+                <div class="card__heat">
                     {{ city.temperature }}&deg;C
                 </div>
             </div>
